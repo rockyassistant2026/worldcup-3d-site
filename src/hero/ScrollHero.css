@@ -1,0 +1,30 @@
+.hero-section {
+  position: relative;
+  height: 400vh;
+  width: 100%;
+  background: linear-gradient(to bottom, #04070d, #0a1425);
+  z-index: 1;
+}
+
+.hero-canvas {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: block;
+  background: #04070d;
+}
+
+.hero-debug {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 12px;
+  color: #00ff88;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 999;
+}
