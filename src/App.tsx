@@ -6,6 +6,7 @@ import { Experience } from "./scene/Experience";
 import { useAppStore } from "./store/useAppStore";
 import { HUD } from "./ui/HUD";
 import { ScrollHero } from "./hero/ScrollHero";
+import { SubscribeCTA } from "./ui/SubscribeCTA";
 
 export default function App() {
   const quality = useAppStore((s) => s.quality);
@@ -106,6 +107,7 @@ export default function App() {
             <p>Drag to orbit · scroll to zoom the pitch</p>
           </div>
           <HUD />
+          <SubscribeCTA />
         </>
       )}
       <Leva hidden={!import.meta.env.DEV} collapsed />

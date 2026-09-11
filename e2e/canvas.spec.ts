@@ -17,12 +17,10 @@ test("hero scroll section renders and responds to scroll", async ({
   const heroSection = page.locator(".hero-section");
   await expect(heroSection).toBeVisible();
   
-  // Assert debug info displays
-  const debugInfo = page.locator(".hero-debug");
-  await expect(debugInfo).toBeVisible();
-  const debugText = await debugInfo.textContent();
-  expect(debugText).toContain("Frame:");
-  expect(debugText).toContain("Loaded:");
+  // Debug info (.hero-debug) is intentionally gated behind import.meta.env.DEV
+  // and must NOT render in this production build/preview — assert it's absent,
+  // not visible.
+  await expect(page.locator(".hero-debug")).toHaveCount(0);
 });
 
 test("canvas mounts, HUD displays, and kick changes ball position", async ({

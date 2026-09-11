@@ -14,6 +14,7 @@ import { Trophy } from "./Trophy";
 import { Flags } from "./Flags";
 import { Confetti } from "./Confetti";
 import { AdvertisingBanners } from "./Banners";
+import { RunningPlayers } from "./RunningPlayers";
 import { useAppStore } from "../store/useAppStore";
 import { getHeroCameraPath } from "./HeroIntro";
 
@@ -105,7 +106,7 @@ function CaptureController() {
 export function Experience() {
   const quality = useAppStore((s) => s.quality);
   const environmentIntensity = quality === "low" ? 0.25 : quality === "medium" ? 0.4 : 0.6;
-  
+
   const cameraRef = useRef<any>(null);
   const orbitControlsRef = useRef<any>(null);
 
@@ -115,13 +116,13 @@ export function Experience() {
       <CaptureController />
       <color attach="background" args={["#04070d"]} />
 
-      <PerspectiveCamera 
+      <PerspectiveCamera
         ref={cameraRef}
-        makeDefault 
-        position={[0, 62, 132]} 
-        fov={38} 
-        near={0.5} 
-        far={1000} 
+        makeDefault
+        position={[0, 62, 132]}
+        fov={38}
+        near={0.5}
+        far={1000}
       />
       <OrbitControls
         ref={orbitControlsRef}
@@ -146,6 +147,7 @@ export function Experience() {
       <Flags />
       <Confetti />
       <AdvertisingBanners />
+      <RunningPlayers />
 
       <Football position={[0, 0.11, 0]} />
 
