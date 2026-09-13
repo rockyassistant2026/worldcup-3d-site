@@ -1,16 +1,24 @@
 ---
 name: motion-design
-description: Broadcast-style motion graphics and rigged character animation for marketing/promo sites — GSAP for scroll/timeline-driven UI motion (title reveals, CTA buttons, transitions), Lottie for shipping After-Effects-authored graphics, Rive for interactive vector micro-interactions, and Three.js skeletal character animation (useAnimations + GLTF action clips) for things like a player running toward goal. Use when the user asks for cinematic reveals, broadcast/promo polish, a "subscribe" or CTA animation, motion graphics, title/lower-third style graphics, or an animated/rigged character (running, walking, celebrating). Trigger keywords: motion design, motion graphics, GSAP, ScrollTrigger, Lottie, Rive, broadcast, promo, CTA animation, rigged character, skeletal animation, running animation, useAnimations.
+description: Broadcast-style motion graphics and rigged character animation for marketing/promo sites — GSAP for scroll/timeline-driven UI motion (title reveals, CTA buttons, transitions), Lenis for smooth/inertial page scrolling, keen-slider for lightweight carousels (client logos, case studies), Lottie for shipping After-Effects-authored graphics, Rive for interactive vector micro-interactions, and Three.js skeletal character animation (useAnimations + GLTF action clips) for things like a player running toward goal. Use when the user asks for cinematic reveals, broadcast/promo polish, a "subscribe" or CTA animation, smooth scrolling, a carousel/slider, motion graphics, title/lower-third style graphics, or an animated/rigged character (running, walking, celebrating). Trigger keywords: motion design, motion graphics, GSAP, ScrollTrigger, ScrollSmoother, Lenis, smooth scroll, keen-slider, carousel, Lottie, Rive, broadcast, promo, CTA animation, rigged character, skeletal animation, running animation, useAnimations.
 ---
 
 # Motion Design
 
-Four tools, four different jobs. Don't reach for GSAP to animate a 3D mesh, and
+Six tools, six different jobs. Don't reach for GSAP to animate a 3D mesh, and
 don't reach for a shader when a CSS/DOM transition is all that's needed.
+
+Reference point: this list matches what premium AI/tech marketing sites
+actually ship — confirmed by inspecting scale.com's live bundle (Next.js +
+Tailwind + Three.js hero canvas + GSAP/ScrollTrigger + Lenis + keen-slider +
+Rive). Our stack already overlaps almost entirely; Lenis and keen-slider are
+the two pieces we don't have yet.
 
 | Need | Tool |
 |---|---|
 | DOM/UI timeline animation (reveals, CTA motion, scroll-triggered transitions) | **GSAP** |
+| Smooth/inertial page scrolling (keeps native scroll semantics — sticky, anchors, a11y) | **Lenis** |
+| Lightweight carousel/slider (client logos, case-study strip) | **keen-slider** |
 | Ship an After-Effects-authored graphic (lower-third, logo sting, title card) | **Lottie** |
 | Interactive vector animation with states (hover/click-driven, e.g. a subscribe button) | **Rive** |
 | Animate a rigged 3D character already in the Three.js scene (player running, celebrating) | **Three.js skeletal animation** (`useAnimations` from `drei`) |
@@ -63,6 +71,88 @@ function TitleReveal() {
 - Always wrap in `gsap.context()` + `ctx.revert()` on unmount in React — otherwise tweens/ScrollTriggers leak across remounts (especially bad with Vite HMR).
 - `ScrollTrigger` conflicts with a manually-driven `scrollY` reader (like a scroll-scrubbed hero) if both attach listeners to the same scroll container — pick one owner per scroll region.
 - For number/text count-up effects (e.g. a subscriber counter), use `gsap.to(obj, { value: 1000, onUpdate: () => setDisplay(Math.round(obj.value)) })`, not CSS.
+- **ScrollSmoother** (GSAP's own smooth-scroll plugin) is also free now — it used to be
+  a paid "Club" plugin, no longer is. If a task wants GSAP-timeline-synced smooth
+  scrolling specifically, ScrollSmoother is the same-ecosystem option; reach for **Lenis**
+  instead when the ask is just "make scrolling feel smooth" without deep GSAP timeline
+  coupling — Lenis is smaller and framework-agnostic.
+
+## Lenis — smooth/inertial scrolling
+
+For a page-wide "smooth scroll" feel (momentum/easing on wheel and touch) without giving
+up native scroll semantics — `position: sticky`, anchor links, and screen-reader/keyboard
+scrolling keep working, unlike older scroll-hijacking libraries.
+
+```bash
+npm i lenis
+```
+
+```tsx
+import { useEffect } from "react";
+import Lenis from "lenis";
+
+function useSmoothScroll() {
+  useEffect(() => {
+    const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
+}
+```
+
+**Gotchas**
+- This project's scroll-scrubbed hero (`ScrollHero.tsx`) already reads `window.scrollY`
+  directly every frame. Lenis wraps native scroll rather than replacing it, so a raw
+  `scrollY` read still works — but confirm the hero's frame-selection math still lines up
+  once Lenis's easing is in the loop before shipping; test the hero specifically, not just
+  general page feel.
+- If GSAP `ScrollTrigger` is also active on the page, wire Lenis's `scroll` event into
+  `ScrollTrigger.update()` and register a `scrollerProxy` — running both independently
+  without connecting them causes ScrollTrigger to read stale scroll positions.
+- Not needed for this project unless a task explicitly asks for smooth-scroll feel across
+  the whole site — don't add it speculatively for the ambient/gameplay canvas sections,
+  which aren't scroll-driven at all.
+
+## keen-slider — lightweight carousels
+
+For a simple horizontal carousel (client-logo strip, case-study cards) that doesn't need
+Swiper's full feature surface. Smaller bundle, framework-agnostic core with a React hook.
+
+```bash
+npm i keen-slider
+```
+
+```tsx
+import { useKeenSlider } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
+
+function LogoStrip({ logos }: { logos: string[] }) {
+  const [sliderRef] = useKeenSlider<HTMLDivElement>({
+    loop: true,
+    drag: false, // pure auto-scroll marquee, not user-dragged
+    renderMode: "performance",
+  });
+
+  return (
+    <div ref={sliderRef} className="keen-slider">
+      {logos.map((src) => (
+        <div className="keen-slider__slide" key={src}>
+          <img src={src} alt="" />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Gotcha:** for a pure auto-scrolling marquee (no user interaction) with an even simpler
+need, a CSS `@keyframes` translateX loop on duplicated content is lighter than pulling in
+a slider library at all — reach for keen-slider when there's real interaction (drag,
+snap-to-slide, pagination dots), not for a static logo ticker.
 
 ## Lottie — After-Effects graphics on the web
 
@@ -196,4 +286,6 @@ live match → subscribe): the running players are Three.js skeletal animation
 (they're in the 3D scene), the title/subscribe-button polish layered on top of
 the DOM/HUD is GSAP, and Lottie/Rive are there for whenever a motion designer
 hands off an actual `.lottie`/`.riv` asset — don't block on them if none exists
-yet.
+yet. Lenis and keen-slider are not installed and not needed yet — add them the
+first time a task actually asks for page-wide smooth scroll or a real
+drag/snap carousel, not speculatively.
